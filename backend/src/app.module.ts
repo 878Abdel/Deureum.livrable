@@ -29,7 +29,7 @@ import { BourseModule } from './bourse/bourse.module';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: false,
         ssl: { rejectUnauthorized: false },
         extra: { connectTimeout: 30000 },
       }),
