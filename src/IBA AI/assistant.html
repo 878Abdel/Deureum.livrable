@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deureum - IBA Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            color: #f8fafc;
+            margin-bottom: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: #cbd5e1;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            font-weight: 400;
+        }
+
+        /* Assistant Container */
+        .assistant-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .character {
+            width: 180px;
+            height: 180px;
+            position: relative;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .character:hover {
+            transform: scale(1.08);
+        }
+
+        .character img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: opacity 0.8s ease;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        /* Dialogue Box */
+        .dialogue-box {
+            position: absolute;
+            bottom: 190px;
+            right: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            max-width: 320px;
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .dialogue-box.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .dialogue-box::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            right: 35px;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid rgba(15, 23, 42, 0.95);
+        }
+
+        .dialogue-text {
+            color: #f1f5f9;
+            font-size: 15px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .dialogue-box .assistant-name {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Help Modal */
+        .help-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .help-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .help-content {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 50px;
+            border-radius: 28px;
+            max-width: 520px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .help-modal.active .help-content {
+            transform: scale(1);
+        }
+
+        .help-content h2 {
+            color: #f8fafc;
+            margin-bottom: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .help-content p {
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+
+        .close-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Status Indicator */
+        .status-indicator {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            border: 4px solid #0f172a;
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>Bienvenue sur Deureum</h1>
+        <p>Votre plateforme de gestion financière personnelle.</p>
+        <p>IBA, votre assistant IA intelligent, est là pour vous guider dans vos décisions financières.</p>
+        <p>Consultez-le pour des conseils personnalisés et optimisez votre gestion budgétaire.</p>
+        <p>Découvrez nos outils d'analyse financière et de planification budgétaire.</p>
+    </div>
+
+    <!-- Assistant Container -->
+    <div class="assistant-container" id="assistant">
+        <div class="dialogue-box" id="dialogueBox">
+            <div class="assistant-name">IBA</div>
+            <div class="dialogue-text" id="dialogueText">Bienvenue sur Deureum ! Je suis IBA, votre assistant financier.</div>
+        </div>
+        <div class="character" id="character">
+            <div class="status-indicator"></div>
+            <img src="ASSETS/Gemini_Generated_Image_1c1g9u1c1g9u1c1g_r1_c1-jukebox-bg-removed.png" alt="Assistant" id="characterImage">
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <h2>IBA - Votre Assistant Financier</h2>
+            <p>Je suis IBA, votre assistant IA dédié à la gestion financière personnelle sur Deureum.</p>
+            <p>Je peux vous aider à analyser vos dépenses, optimiser votre budget et vous donner des conseils financiers personnalisés.</p>
+            <p>Les fonctionnalités complètes de l'assistant seront bientôt disponibles.</p>
+            <button class="close-btn" onclick="closeHelpModal()">Fermer</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration des images et réactions
+        const images = [
+            'ASSETS/Gemini_Generated_Image_1c1g9u1c1g9u1c1g_r1_c1-jukebox-bg-removed.png',
+            'ASSETS/Gemini_Generated_Image_1c1g9u1c1g9u1c1g_r1_c2-jukebox-bg-removed.png',
+            'ASSETS/Gemini_Generated_Image_1c1g9u1c1g9u1c1g_r1_c3-jukebox-bg-removed.png',
+            'ASSETS/Gemini_Generated_Image_1c1g9u1c1g9u1c1g_r2_c1-jukebox-bg-removed.png',
+            'ASSETS/Gemini_Generated_Image_1c1g9u1c1g9u1c1g_r2_c2-jukebox-bg-removed.png',
+            'ASSETS/Gemini_Generated_Image_1c1g9u1c1g9u1c1g_r2_c3-jukebox-bg-removed.png',
+            'ASSETS/Gemini_Generated_Image_1c1g9u1c1g9u1c1g_r3_c1-jukebox-bg-removed.png',
+            'ASSETS/Gemini_Generated_Image_1c1g9u1c1g9u1c1g_r3_c2-jukebox-bg-removed.png',
+            'ASSETS/Gemini_Generated_Image_1c1g9u1c1g9u1c1g_r3_c3-jukebox-bg-removed.png'
+        ];
+
+        const dialogues = [
+            { text: 'Bienvenue sur Deureum ! Je suis IBA, votre assistant financier.' },
+            { text: 'Besoin de conseils pour optimiser votre budget ? Je suis là pour ça.' },
+            { text: 'Analysons ensemble vos dépenses ce mois-ci.' },
+            { text: 'Une bonne gestion financière commence par de bonnes habitudes.' },
+            { text: 'Cliquez sur moi pour découvrir mes fonctionnalités.' },
+            { text: 'Vos objectifs financiers sont à portée de main avec Deureum.' },
+            { text: 'Je peux vous aider à planifier vos économisations intelligemment.' },
+            { text: 'Chaque euro compte quand il s\'agit de votre avenir financier.' },
+            { text: 'Sur Deureum, votre argent travaille pour vous.' }
+        ];
+
+        let currentImageIndex = 0;
+        let currentDialogueIndex = 0;
+        const characterImage = document.getElementById('characterImage');
+        const dialogueBox = document.getElementById('dialogueBox');
+        const dialogueText = document.getElementById('dialogueText');
+        const assistant = document.getElementById('assistant');
+        const helpModal = document.getElementById('helpModal');
+
+        // Fonction pour changer l'image et le dialogue
+        function changeReaction() {
+            // Transition de l'image
+            characterImage.style.opacity = '0';
+            
+            setTimeout(() => {
+                currentImageIndex = (currentImageIndex + 1) % images.length;
+                currentDialogueIndex = (currentDialogueIndex + 1) % dialogues.length;
+                
+                characterImage.src = images[currentImageIndex];
+                dialogueText.textContent = dialogues[currentDialogueIndex].text;
+                
+                characterImage.style.opacity = '1';
+                
+                // Afficher le dialogue
+                dialogueBox.classList.add('active');
+                
+                // Cacher le dialogue après 5 secondes
+                setTimeout(() => {
+                    dialogueBox.classList.remove('active');
+                }, 5000);
+            }, 300);
+        }
+
+        // Changer la réaction toutes les 8 secondes
+        setInterval(changeReaction, 8000);
+
+        // Afficher un dialogue au chargement
+        setTimeout(() => {
+            dialogueBox.classList.add('active');
+            setTimeout(() => {
+                dialogueBox.classList.remove('active');
+            }, 5000);
+        }, 1500);
+
+        // Clic sur l'assistant pour ouvrir l'aide
+        assistant.addEventListener('click', () => {
+            helpModal.classList.add('active');
+        });
+
+        // Fermer le modal d'aide
+        function closeHelpModal() {
+            helpModal.classList.remove('active');
+        }
+
+        // Fermer le modal en cliquant à l'extérieur
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                closeHelpModal();
+            }
+        });
+
+        // Fermer avec Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeHelpModal();
+            }
+        });
+    </script>
+</body>
+</html>
